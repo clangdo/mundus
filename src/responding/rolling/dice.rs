@@ -30,7 +30,10 @@ impl fmt::Display for Roll {
 impl Dice {
     pub fn new(string_repr: &str) -> Result<Dice, Box<dyn Error>> {
         let mut iter = string_repr.split('d');
-        let mut dice = Dice { quantity: 0, sides: 0 };
+        let mut dice = Dice {
+            quantity: 0,
+            sides: 0,
+        };
 
         if let Some(string_number) = iter.next() {
             dice.quantity = string_number.parse::<u32>()?;
@@ -50,15 +53,15 @@ impl Dice {
 
         Ok(dice)
     }
-    
+
     pub fn roll(&self, rng: &mut ThreadRng) -> Roll {
-        let dist = Uniform::new_inclusive(
-            self.quantity,
-            self.quantity * self.sides,
-        );
-        
+        let dist = Uniform::new_inclusive(self.quantity, self.quantity * self.sides);
+
         Roll {
-            dice: Dice{quantity: self.quantity, sides: self.sides},
+            dice: Dice {
+                quantity: self.quantity,
+                sides: self.sides,
+            },
             result: rng.sample(dist),
         }
     }

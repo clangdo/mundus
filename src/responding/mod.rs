@@ -4,12 +4,12 @@ use rand::prelude::*;
 use rolling::Expression;
 use serenity::{
     async_trait,
-    model::{id::ChannelId, channel::Message, event::ResumedEvent, gateway::Ready},
+    model::{channel::Message, event::ResumedEvent, gateway::Ready, id::ChannelId},
     prelude::*,
 };
 use std::fmt;
-use std::str;
 use std::iter::FromIterator;
+use std::str;
 
 const PREFIX: char = '-';
 
@@ -40,7 +40,7 @@ fn roll(args: &mut str::SplitWhitespace<'_>) -> String {
             } else {
                 String::from(format!("`{} = unknown`", expr))
             }
-        },
+        }
         Err(why) => String::from(format!("`{}`", why.to_string())),
     }
 }
@@ -83,7 +83,7 @@ impl EventHandler for Responder {
     async fn resume(&self, _ctx: Context, _resume: ResumedEvent) {
         println!("Resumed");
     }
-    
+
     async fn ready(&self, _ctx: Context, ready: Ready) {
         println!("{} is connected.", ready.user.name);
     }

@@ -6,8 +6,7 @@ use serenity::prelude::*;
 
 #[tokio::main]
 async fn main() {
-    let token = env::var("DISCORD_TOKEN")
-        .expect("Mundus requires a token!");
+    let token = env::var("DISCORD_TOKEN").expect("Mundus requires a token!");
 
     let mut client = Client::builder(&token)
         .event_handler(responding::Responder)

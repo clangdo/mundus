@@ -22,7 +22,7 @@ impl Operator {
             _ => Err("Unkown operator in expression (Something is seriously wrong here.)"),
         }
     }
-    
+
     // TODO: Deal with NaNs and overflows
     fn operate(&self, lhs: u32, rhs: u32) -> u32 {
         match self {
@@ -33,7 +33,7 @@ impl Operator {
         }
     }
 
-    fn precedence(op: &str) -> u32{
+    fn precedence(op: &str) -> u32 {
         match op {
             "+" => 0,
             "-" => 0,
@@ -93,7 +93,7 @@ impl Operand {
 #[derive(Debug)]
 pub enum Element {
     OperatorEl(Operator),
-    OperandEl(Operand)
+    OperandEl(Operand),
 }
 
 impl fmt::Display for Element {
@@ -129,18 +129,18 @@ impl Expression {
                     element: element,
                     right: None,
                     left: None,
-                }))
+                })),
             }
         } else {
             None
         }
     }
-    
+
     pub fn determine(&mut self, rng: &mut ThreadRng) {
         if let Element::OperandEl(Operand::Dice(dice)) = &mut self.element {
             self.element = Element::OperandEl(Operand::Roll(dice.roll(rng)));
         }
-        
+
         if let Some(left) = &mut self.left {
             (*left).determine(rng);
         }
@@ -152,12 +152,10 @@ impl Expression {
 
     pub fn resolve(&self, rng: &mut ThreadRng) -> Result<u32, Box<dyn error::Error>> {
         match &self.element {
-            Element::OperandEl(operand) => {
-                match operand {
-                    Operand::Number(num) => Ok(*num),
-                    Operand::Dice(dice) => Ok(dice.roll(rng).result),
-                    Operand::Roll(roll) => Ok(roll.result),
-                }
+            Element::OperandEl(operand) => match operand {
+                Operand::Number(num) => Ok(*num),
+                Operand::Dice(dice) => Ok(dice.roll(rng).result),
+                Operand::Roll(roll) => Ok(roll.result),
             },
             Element::OperatorEl(operator) => {
                 if let (Some(left), Some(right)) = (self.left.as_ref(), self.right.as_ref()) {
@@ -167,7 +165,7 @@ impl Expression {
                 } else {
                     Err("Malformed tree, operand(s) absent for binary operator".into())
                 }
-            },
+            }
         }
     }
 }
@@ -194,10 +192,9 @@ struct ExpressionBuilder {
 impl ExpressionBuilder {
     fn build(mut self, expr_str: &str) -> Result<Expression, &str> {
         let mut last_index: usize = 0;
-        let iter =  expr_str.match_indices(|c: char| -> bool {
-            ['+', '-', '*', '/', '(', ')'].contains(&c)
-        });
-        
+        let iter = expr_str
+            .match_indices(|c: char| -> bool { ['+', '-', '*', '/', '(', ')'].contains(&c) });
+
         for (index, operator_str) in iter {
             // Add the last operand to the expression stack
             let last_operand_str = expr_str.get(last_index..index).unwrap_or("");
@@ -205,8 +202,12 @@ impl ExpressionBuilder {
 
             // Handle operators including "(" which has special handling in try_push_operator
             match operator_str {
-                ")" => {self.close_paren()?;},
-                _ => {self.try_push_operator(operator_str)?;},
+                ")" => {
+                    self.close_paren()?;
+                }
+                _ => {
+                    self.try_push_operator(operator_str)?;
+                }
             };
 
             last_index = index + 1;
@@ -230,7 +231,7 @@ impl ExpressionBuilder {
             Err("Unable to create expression tree")
         }
     }
-    
+
     fn close_paren(&mut self) -> Result<(), &'static str> {
         let mut matching = false;
 
@@ -238,7 +239,6 @@ impl ExpressionBuilder {
             matching = op.as_str() == "(";
             matching
         });
-
 
         if !matching {
             Err("Unbalanced parentheses")
@@ -255,13 +255,18 @@ impl ExpressionBuilder {
         }
     }
 
-    fn shuffle_ops_until<F>(&mut self, mut f: F) where F: FnMut(&String) -> bool {
+    fn shuffle_ops_until<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&String) -> bool,
+    {
         while let Some(op) = self.op_stack.pop() {
             if f(&op) {
                 self.op_stack.push(op);
                 break;
             } else {
-                self.expr_stack.push(Element::OperatorEl(Operator::from(&op).unwrap_or(Operator::Multiplication)));
+                self.expr_stack.push(Element::OperatorEl(
+                    Operator::from(&op).unwrap_or(Operator::Multiplication),
+                ));
             }
         }
     }
@@ -276,8 +281,7 @@ impl ExpressionBuilder {
 
     fn try_push_operator(&mut self, operator_str: &str) -> Result<(), &'static str> {
         self.shuffle_ops_until(|stacked_op| -> bool {
-            if operator_str == "("
-                || stacked_op == "(" {
+            if operator_str == "(" || stacked_op == "(" {
                 true
             } else {
                 let lhs = Operator::precedence(operator_str);
@@ -285,7 +289,7 @@ impl ExpressionBuilder {
                 lhs > rhs
             }
         });
-        
+
         self.op_stack.push(String::from(operator_str));
         Ok(())
     }
