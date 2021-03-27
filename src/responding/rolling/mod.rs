@@ -2,7 +2,7 @@ pub mod dice;
 
 use rand::rngs::ThreadRng;
 
-use std::error;
+use std::{error, fmt};
 
 #[derive(Debug)]
 pub enum Operator {
@@ -44,11 +44,32 @@ impl Operator {
     }
 }
 
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Operator::Addition => write!(f, " + "),
+            Operator::Subtraction => write!(f, " - "),
+            Operator::Multiplication => write!(f, " * "),
+            Operator::Division => write!(f, " / "),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum Operand {
     Number(u32),
     Dice(dice::Dice),
     Roll(dice::Roll),
+}
+
+impl fmt::Display for Operand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Operand::Number(num) => write!(f, "{}", num),
+            Operand::Dice(dice) => write!(f, "{}", dice),
+            Operand::Roll(roll) => write!(f, "{}", roll),
+        }
+    }
 }
 
 impl Operand {
@@ -73,6 +94,15 @@ impl Operand {
 pub enum Element {
     OperatorEl(Operator),
     OperandEl(Operand)
+}
+
+impl fmt::Display for Element {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Element::OperatorEl(operator) => write!(f, "{}", operator),
+            Element::OperandEl(operand) => write!(f, "{}", operand),
+        }
+    }
 }
 
 pub struct Expression {
@@ -139,6 +169,20 @@ impl Expression {
                 }
             },
         }
+    }
+}
+
+impl fmt::Display for Expression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(left) = &self.left {
+            write!(f, "({}", *left)?
+        }
+        let result = write!(f, "{}", self.element);
+        if let Some(right) = &self.right {
+            write!(f, "{})", *right)?
+        }
+
+        result
     }
 }
 
